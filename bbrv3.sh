@@ -5,13 +5,8 @@ function check_root()
 	[ "$(whoami)" == "root" ] || return 1
 	return 0
 }
-function conditional_unset_ipv6_first()
-{
-	[ -f /root/.bbr3_onekey_install/set_ipv6_first ] && sed -i '/^label 2002\:\:\/16/d' /etc/gai.conf
-}
 function report_error()
 {
-	conditional_unset_ipv6_first
 	echo $1
 	exit 1
 }
@@ -20,11 +15,12 @@ function set_sysctl()
 {
 	sed -i "s/[# ]?$1//g" /etc/sysctl.conf
 }
-function set_ipv6_first()
+function manually_download_xanmod()
 {
-	echo "label 2002::/16   2" >> /etc/gai.conf
-	touch /root/.bbr3_onekey_install/set_ipv6_first
-	echo "由于检测到本机IPv4访问CF会触发验证，已自动转到IPv6优先模式"
+	echo "由于检测到本机IPv4访问CF会触发验证，无法自动下载xanmod内核，正在手动下载中"
+	wget https://github.com/nathanli97/BBR3OK/releases/download/xanmod-6.1.57/linux-headers-6.1.57-x64v3-xanmod1_6.1.57-x64v3-xanmod1-0.20231010.g5569c8a_amd64.deb
+	wget https://github.com/nathanli97/BBR3OK/releases/download/xanmod-6.1.57/linux-image-6.1.57-x64v3-xanmod1_6.1.57-x64v3-xanmod1-0.20231010.g5569c8a_amd64.deb
+	dpkg -i linux-image-*xanmod*.deb linux-headers-*xanmod*.deb
 }
 echo "BBR3 一键安装脚本 by Nathanli1211(鸟临窗语报天晴)"
 # This script only supports Ubuntu... other platforms not tested (yet)
@@ -35,12 +31,15 @@ cd /root/.bbr3_onekey_install
 echo 从官方源安装XANMOD 内核...
 
 rm -f /usr/share/keyrings/xanmod-archive-keyring.gpg
-[ -n "$(curl https://dl.xanmod.org/archive.key | grep 'Just a moment')" ] || set_ipv6_first
-wget -qO - https://dl.xanmod.org/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg || report_error "安装内核时出错"
-echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | sudo tee /etc/apt/sources.list.d/xanmod-release.list || report_error "安装内核时出错"
-sudo apt update && sudo apt install -y linux-xanmod-x64v3 || report_error "安装内核时出错"
-conditional_unset_ipv6_first
-echo "优化系统配置..."
+[ -n "$(curl https://dl.xanmod.org/archive.key | grep 'Just a moment')" ] && manually_download_xanmod
+if [ -n "$(curl https://dl.xanmod.org/archive.key | grep 'Just a moment')" ];then
+	manually_download_xanmod
+else
+	wget -qO - https://dl.xanmod.org/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg || report_error "安装内核时出错"
+	echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | sudo tee /etc/apt/sources.list.d/xanmod-release.list || report_error "安装内核时出错"
+	sudo apt update && sudo apt install -y linux-xanmod-x64v3 || report_error "安装内核时出错"
+fi
+echo "内核安装完成，优化系统配置..."
 
 
 if grep -q "BBRv3-Xanmod" "/etc/sysctl.conf"; then
