@@ -23,7 +23,7 @@ function manually_download_xanmod()
 	dpkg -i linux-image-*xanmod*.deb linux-headers-*xanmod*.deb
 }
 echo "BBR3 一键安装脚本 by Nathanli1211(鸟临窗语报天晴)"
-# This script only supports Ubuntu... other platforms not tested (yet)
+# This script only supports Ubuntu/Debain10... other platforms not tested (yet)
 check_root || report_error "请以root身份运行！"
 # Install Xanmod from offical repo
 mkdir /root/.bbr3_onekey_install >> /dev/null 2>&1
