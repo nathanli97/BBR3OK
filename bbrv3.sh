@@ -35,7 +35,7 @@ cd /root/.bbr3_onekey_install
 echo 从官方源安装XANMOD 内核...
 
 rm -f /usr/share/keyrings/xanmod-archive-keyring.gpg
-[ -n "$(curl https://dl.xanmod.org/archive.key)" ] || set_ipv6_first
+[ -n "$(curl https://dl.xanmod.org/archive.key | grep 'Just a moment')" ] || set_ipv6_first
 wget -qO - https://dl.xanmod.org/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg || report_error "安装内核时出错"
 echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | sudo tee /etc/apt/sources.list.d/xanmod-release.list || report_error "安装内核时出错"
 sudo apt update && sudo apt install -y linux-xanmod-x64v3 || report_error "安装内核时出错"
